@@ -12,8 +12,9 @@ user_input = st.text_area("Tulis komentar di sini:", placeholder="Contoh: Saya s
 # 3. Logika Analisis
 if st.button("Analisis Sekarang"):
     if user_input:
+        translated = GoogleTranslator(source='auto', target='en').translate(user_input)
         # Proses teks menggunakan TextBlob
-        blob = TextBlob(user_input)
+        blob = TextBlob(translated)
         skor = blob.sentiment.polarity # Skala -1 sampai 1
         
         # Penentuan Label
