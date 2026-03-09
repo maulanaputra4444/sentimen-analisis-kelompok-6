@@ -1,45 +1,44 @@
 import streamlit as st
-from textblob import TextBlob
-from deep_translator import GoogleTranslator
+from transformers import pipeline
 
 # 1. Judul dan Deskripsi
 st.set_page_config(page_title="Sentimen Analis X", page_icon="📊")
-st.title("🔍 Alat Analisis Sentimen Sederhana")
-st.write("Masukkan komentar dalam Bahasa Indonesia, dan kami akan menganalisisnya.")
+st.title("🔍 Alat Analisis Sentimen Indonesia")
+st.write("Aplikasi ini menggunakan model AI (IndoRoBERTa) yang dilatih khusus untuk Bahasa Indonesia.")
 
-# 2. Area Input Pengguna
-user_input = st.text_area("Tulis komentar di sini:", placeholder="Contoh: Saya sangat senang dengan fitur baru ini!")
+# 2. Load Model (Disimpan di Cache agar cepat)
+@st.cache_resource
+def load_model():
+    # Model ini dikembangkan oleh w11wo untuk sentimen Bahasa Indonesia
+    return pipeline("sentiment-analysis", model="w11wo/indonesian-roberta-base-sentiment-classifier")
 
-# 3. Logika Analisis
+nlp = load_model()
+
+# 3. Area Input Pengguna
+user_input = st.text_area("Tulis komentar di sini:", placeholder="Contoh: Makanannya enak banget tapi pelayanannya agak lama.")
+
+# 4. Logika Analisis
 if st.button("Analisis Sekarang"):
     if user_input.strip():
-        try:
-            # Langkah Penting: Terjemahkan ke Inggris karena TextBlob butuh Bahasa Inggris
-            translated = GoogleTranslator(source='auto', target='en').translate(user_input)
+        with st.spinner('Menganalisis teks...'):
+            # Melakukan prediksi
+            result = nlp(user_input)
+            label = result[0]['label'] # 'positive', 'neutral', atau 'negative'
+            score = result[0]['score']
             
-            # Proses teks hasil terjemahan menggunakan TextBlob
-            blob = TextBlob(translated)
-            skor = blob.sentiment.polarity # Skala -1 sampai 1
+            # Pemetaan Label ke Format Anda
+            mapping = {
+                "positive": ("Positif 😊", "green"),
+                "negative": ("Negatif 😡", "red"),
+                "neutral": ("Netral 😐", "gray")
+            }
             
-            # Penentuan Label
-            if skor > 0:
-                hasil = "Positif 😊"
-                warna = "green"
-            elif skor < 0:
-                hasil = "Negatif 😡"
-                warna = "red"
-            else:
-                hasil = "Netral 😐"
-                warna = "gray"
+            hasil, warna = mapping.get(label.lower(), ("Tidak Diketahui", "black"))
             
-            # 4. Menampilkan Hasil
+            # 5. Menampilkan Hasil
             st.divider()
             st.subheader("Hasil Analisis:")
             st.markdown(f"Komentar Anda terdeteksi: :{warna}[**{hasil}**]")
-            st.info(f"Skor Polaritas: {skor:.2f}")
-            st.caption(f"Terjemahan (untuk sistem): {translated}")
-            
-        except Exception as e:
-            st.error(f"Terjadi kesalahan saat menerjemahkan: {e}")
+            st.info(f"Tingkat Keyakinan Model: {score:.2f}")
     else:
         st.warning("Silakan masukkan teks terlebih dahulu!")
