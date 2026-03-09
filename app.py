@@ -6,7 +6,7 @@ import plotly.express as px
 # 1. Page Configuration
 st.set_page_config(page_title="Sentimen Analis X - Batch", page_icon="📊", layout="wide")
 st.title("🔍 Analisis Sentimen Komentar Media Sosial")
-st.write("Masukkan hingga 10 komentar di bawah ini untuk melihat statistik sentimen kelompok Anda.")
+st.write("Masukkan hingga 10 komentar di bawah ini")
 
 # 2. Load Model (Cached)
 @st.cache_resource
